@@ -1,0 +1,1359 @@
+classdef Interfaz_FuncionalTerminada_V16 < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        Ventana                         matlab.ui.Figure
+        GridLayout                      matlab.ui.container.GridLayout
+        LeftPanel                       matlab.ui.container.Panel
+        GridLayout2                     matlab.ui.container.GridLayout
+        TablaPuertos                    matlab.ui.control.Table
+        GridLayout12                    matlab.ui.container.GridLayout
+        MuestrasSpinner                 matlab.ui.control.Spinner
+        MuestrasSpinnerLabel            matlab.ui.control.Label
+        RestablecerButton               matlab.ui.control.Button
+        ActualizarButton                matlab.ui.control.Button
+        ScreenShotButton                matlab.ui.control.Button
+        FrecuenciaMuestreoSpinner       matlab.ui.control.Spinner
+        FrecuenciaMuestreoSpinnerLabel  matlab.ui.control.Label
+        GridLayout11                    matlab.ui.container.GridLayout
+        CERRARButton                    matlab.ui.control.Button
+        STOPButton                      matlab.ui.control.Button
+        INICIOButton                    matlab.ui.control.Button
+        OpcionesdegrficoPanel           matlab.ui.container.Panel
+        GridLayout10                    matlab.ui.container.GridLayout
+        AutoescalaCheckBox              matlab.ui.control.CheckBox
+        GridCheckBox                    matlab.ui.control.CheckBox
+        InvertirCheckBox                matlab.ui.control.CheckBox
+        CenterPanel                     matlab.ui.container.Panel
+        GridLayout3                     matlab.ui.container.GridLayout
+        TabGroup                        matlab.ui.container.TabGroup
+        EMGTab                          matlab.ui.container.Tab
+        GridLayout7                     matlab.ui.container.GridLayout
+        Grafico                         matlab.ui.control.UIAxes
+        EMGFiltradaTab                  matlab.ui.container.Tab
+        GridLayout6                     matlab.ui.container.GridLayout
+        GraficoEmgFiltrada              matlab.ui.control.UIAxes
+        RectificacinTab                 matlab.ui.container.Tab
+        GridLayout13                    matlab.ui.container.GridLayout
+        GraficoRectificado              matlab.ui.control.UIAxes
+        EnvolventeTab                   matlab.ui.container.Tab
+        GridLayout5                     matlab.ui.container.GridLayout
+        GraficoEnvolvente               matlab.ui.control.UIAxes
+        FFTTab                          matlab.ui.container.Tab
+        GridLayout9                     matlab.ui.container.GridLayout
+        GraficoFFT                      matlab.ui.control.UIAxes
+        ComparacinTab                   matlab.ui.container.Tab
+        GridLayout8                     matlab.ui.container.GridLayout
+        GraficoFiltrada                 matlab.ui.control.UIAxes
+        GraficoEMGEnvolvente            matlab.ui.control.UIAxes
+        GraficoEMGRectificada           matlab.ui.control.UIAxes
+        GraficoEMG                      matlab.ui.control.UIAxes
+        MonitordeelectromiografaEMGentiemporealLabel  matlab.ui.control.Label
+        RightPanel                      matlab.ui.container.Panel
+        GridLayout4                     matlab.ui.container.GridLayout
+        PorcentajeFatigaMuscularEditField  matlab.ui.control.NumericEditField
+        PorcentajeFatigaMuscularEditFieldLabel  matlab.ui.control.Label
+        PorcentajeTensinMaxEditField    matlab.ui.control.NumericEditField
+        PorcentajeTensinMaxEditFieldLabel  matlab.ui.control.Label
+        ValorRMSEditField               matlab.ui.control.NumericEditField
+        ValorRMSEditFieldLabel          matlab.ui.control.Label
+        AmplitudMximaEditField          matlab.ui.control.NumericEditField
+        AmplitudMximaEditFieldLabel     matlab.ui.control.Label
+        RutaArchivoEditField            matlab.ui.control.EditField
+        RutaArchivoEditFieldLabel       matlab.ui.control.Label
+        IMPORTARButton                  matlab.ui.control.Button
+        EXPORTARButton                  matlab.ui.control.Button
+        LIMPIARButton                   matlab.ui.control.Button
+        TablaDatos                      matlab.ui.control.Table
+        ArchivoMenu                     matlab.ui.container.Menu
+        ExportarMenu                    matlab.ui.container.Menu
+        ImportarMenu                    matlab.ui.container.Menu
+        SalirMenu                       matlab.ui.container.Menu
+        AyudaMenu_2                     matlab.ui.container.Menu
+        ManualMenu                      matlab.ui.container.Menu
+    end
+
+    % Properties that correspond to apps with auto-reflow
+    properties (Access = private)
+        onePanelWidth = 576;
+        twoPanelWidth = 768;
+    end
+
+    
+    properties (Access = private)
+        PropiedadInicio % Description
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            global stop
+            freeport = serialportlist("available");
+            freeport = freeport';
+            app.TablaPuertos.Data = freeport;
+            
+            stop = 1;
+            app.STOPButton.BackgroundColor = [201 60 29]/255;
+            app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+        end
+
+        % Changes arrangement of the app based on UIFigure width
+        function updateAppLayout(app, event)
+            currentFigureWidth = app.Ventana.Position(3);
+            if(currentFigureWidth <= app.onePanelWidth)
+                % Change to a 3x1 grid
+                app.GridLayout.RowHeight = {703, 703, 703};
+                app.GridLayout.ColumnWidth = {'1x'};
+                app.CenterPanel.Layout.Row = 1;
+                app.CenterPanel.Layout.Column = 1;
+                app.LeftPanel.Layout.Row = 2;
+                app.LeftPanel.Layout.Column = 1;
+                app.RightPanel.Layout.Row = 3;
+                app.RightPanel.Layout.Column = 1;
+            elseif (currentFigureWidth > app.onePanelWidth && currentFigureWidth <= app.twoPanelWidth)
+                % Change to a 2x2 grid
+                app.GridLayout.RowHeight = {703, 703};
+                app.GridLayout.ColumnWidth = {'1x', '1x'};
+                app.CenterPanel.Layout.Row = 1;
+                app.CenterPanel.Layout.Column = [1,2];
+                app.LeftPanel.Layout.Row = 2;
+                app.LeftPanel.Layout.Column = 1;
+                app.RightPanel.Layout.Row = 2;
+                app.RightPanel.Layout.Column = 2;
+            else
+                % Change to a 1x3 grid
+                app.GridLayout.RowHeight = {'1x'};
+                app.GridLayout.ColumnWidth = {196, '1x', 289};
+                app.LeftPanel.Layout.Row = 1;
+                app.LeftPanel.Layout.Column = 1;
+                app.CenterPanel.Layout.Row = 1;
+                app.CenterPanel.Layout.Column = 2;
+                app.RightPanel.Layout.Row = 1;
+                app.RightPanel.Layout.Column = 3;
+            end
+        end
+
+        % Cell selection callback: TablaPuertos
+        function TablaPuertosCellSelection(app, event)
+            global port
+            try
+                indices = event.Indices;
+                row = indices(:,1);
+                port = app.TablaPuertos.Data(row,:);
+            catch 
+                warndlg('Seleccione un único puerto serial, deberá seleccionar el puerto serial correspondiente al monitor de electromiografía','Excepción');
+            end
+        end
+
+        % Button pushed function: ActualizarButton
+        function ActualizarButtonPushed(app, event)
+            try
+                freeport = serialportlist("available");
+                freeport = freeport';
+                app.TablaPuertos.Data = freeport;
+            catch 
+                warndlg('No hay puertos seriales COM conectados','Excepción');
+            end
+        end
+
+        % Button pushed function: INICIOButton
+        function INICIOButtonPushed(app, event)
+            global stop datos const port
+            try  
+            app.PropiedadInicio = serialport(port,115200,"Timeout",5);
+            configureTerminator(app.PropiedadInicio,"CR/LF");
+            stop = 0;
+
+            app.TablaDatos.Data = [];
+            app.INICIOButton.Enable = 'off';
+            app.IMPORTARButton.Enable = 'off';
+            app.EXPORTARButton.Enable = 'off';
+            app.ImportarMenu.Enable = 'off';
+            app.ExportarMenu.Enable = 'off';
+            app.CERRARButton.Enable = 'off';
+            app.SalirMenu.Enable = 'off';
+            app.LIMPIARButton.Enable = 'off';
+            app.MuestrasSpinner.Enable = 'off';
+            app.FrecuenciaMuestreoSpinner.Enable = 'off';
+            app.RestablecerButton.Enable = 'off';
+            app.ActualizarButton.Enable = 'off';
+            app.RutaArchivoEditField.Value = ' ';
+            app.ValorRMSEditField.Value = 0;
+            app.AmplitudMximaEditField.Value = 0;
+            app.PorcentajeTensinMaxEditField.Value = 0;
+            app.PorcentajeFatigaMuscularEditField.Value = 0;
+            
+
+            cla(app.GraficoEmgFiltrada);
+            cla(app.GraficoFiltrada);
+            cla(app.GraficoEmgFiltrada);
+            cla(app.GraficoRectificado);
+            cla(app.GraficoEnvolvente);
+            cla(app.GraficoEMG);
+            cla(app.GraficoEMGRectificada);
+            cla(app.GraficoEMGEnvolvente);
+            cla(app.GraficoFFT);
+            
+            muestras = app.MuestrasSpinner.Value;
+
+            voltaje = 0;
+            contador = 1;
+
+            while contador <= muestras
+                drawnow update;
+               if stop == 1
+                    app.INICIOButton.Enable = 'on';
+                    app.IMPORTARButton.Enable = 'on';
+                    app.EXPORTARButton.Enable = 'on';
+                    app.ImportarMenu.Enable = 'on';
+                    app.ExportarMenu.Enable = 'on';
+                    app.CERRARButton.Enable = 'on';
+                    app.SalirMenu.Enable = 'on';
+                    app.LIMPIARButton.Enable = 'on';
+                    app.MuestrasSpinner.Enable = 'on';
+                    app.FrecuenciaMuestreoSpinner.Enable = 'on';
+                    app.RestablecerButton.Enable = 'on';
+                    app.ActualizarButton.Enable = 'on';
+                    app.STOPButton.BackgroundColor = [201 60 29]/255;
+                    app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+                    break;
+
+               else
+                    app.INICIOButton.BackgroundColor = [84 201 29]/255;
+                    app.STOPButton.BackgroundColor = [0.96 0.96 0.96];
+                    valorADC = str2double(readline(app.PropiedadInicio));
+                    const(contador) = 5;
+                    voltaje(contador) = (valorADC(1)*5/308)*100;
+                    fq = app.FrecuenciaMuestreoSpinner.Value;
+                    t = 1/fq*(1:length(voltaje));
+
+                    plot(app.Grafico,t,voltaje);
+                    plot(app.GraficoEMG,t,voltaje);
+                    app.Grafico.XLim = [0 app.MuestrasSpinner.Value/fq];
+                    app.Grafico.YLim = [0 1500];
+                    app.GraficoEMG.XLim = [0 app.MuestrasSpinner.Value/fq];
+                    app.GraficoEMG.YLim = [0 1500];
+                    
+                    tiempo(contador) = contador;
+                    
+                    datos = [tiempo/fq;voltaje];
+                    p = rmmissing(datos');
+                    app.TablaDatos.Data = p;
+
+                   
+                    contador = contador + 1;
+
+                end
+            end  
+
+            app.STOPButton.BackgroundColor = [201 60 29]/255;
+            app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+            stop = 1;
+            delete(app.PropiedadInicio);
+            app.INICIOButton.Enable = 'on';
+            app.IMPORTARButton.Enable = 'on';
+            app.EXPORTARButton.Enable = 'on';
+            app.ImportarMenu.Enable = 'on';
+            app.ExportarMenu.Enable = 'on';
+            app.CERRARButton.Enable = 'on';
+            app.SalirMenu.Enable = 'on';
+            app.LIMPIARButton.Enable = 'on';
+            app.MuestrasSpinner.Enable = 'on';
+            app.FrecuenciaMuestreoSpinner.Enable = 'on';
+            app.RestablecerButton.Enable = 'on';
+            app.ActualizarButton.Enable = 'on';
+            app.STOPButton.BackgroundColor = [201 60 29]/255;
+            app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+            
+            if stop == 1
+                
+                    RMS = sqrt(sum(voltaje.^2) / length(voltaje));
+                    RMSreal = 2*RMS;
+                    app.ValorRMSEditField.Value = RMS;
+                    maximo = max(voltaje, [], 'all');
+                    app.AmplitudMximaEditField.Value = maximo;
+                    PTM = (RMSreal/maximo)*100;
+                    app.PorcentajeTensinMaxEditField.Value = PTM;
+                    
+                    
+                    r = datos';
+                    data1 = r;
+                    
+                    primeros_diez = ((app.MuestrasSpinner.Value)*10)/(app.MuestrasSpinner.Value/app.FrecuenciaMuestreoSpinner.Value);
+                    columna2_primeros = data1(1:primeros_diez, 2);
+                    valor_maximo_primeros = max(columna2_primeros);
+                    columna2_ultimos = data1(end-primeros_diez:end, 2);
+                    valor_pico_ultimos = max(columna2_ultimos);
+                    resultado = (valor_pico_ultimos/valor_maximo_primeros);
+                    app.PorcentajeFatigaMuscularEditField.Value = resultado;
+
+                    SenalEMG = data1(:,2);
+                    fft_SenalEMG = fft(SenalEMG);
+                    fft_SenalEMG = fftshift(fft_SenalEMG);
+                    n = length(SenalEMG);
+                    fq_axis1 = (-n/2:n/2-1)*fq/n;
+                    abs_fft_SenalEMG = abs(fft_SenalEMG);
+                    
+                    
+                    plot(app.GraficoFFT,fq_axis1, abs_fft_SenalEMG); 
+                    
+                    highpass = 20;
+                    lowpass = 200;
+                                          
+                    sEMG1 = data1(:,2); 
+                    
+                    cutoff1 = ceil((12.5-highpass)/(fq/length(sEMG1))); cutoff2 = ceil((12.5-lowpass)/(fq/length(sEMG1)));
+                    cutoff3 = ceil((highpass+12.5)/(fq/length(sEMG1))); cutoff4 = ceil((lowpass+12.5)/(fq/length(sEMG1)));
+                    H = zeros(length(sEMG1),1); H(cutoff2:cutoff1) = 1;
+                    H(cutoff3:cutoff4) = 1; 
+                    
+                    yt1 = ifftshift(fft_SenalEMG.*H); 
+                    yt1 = ifft(yt1);
+                    t = 1/fq*(1:length(yt1));
+                    plot(app.GraficoEmgFiltrada,t,yt1);
+                    plot(app.GraficoFiltrada,t,yt1);
+                    
+                    EMG_Voltage=real(yt1);
+                    RectifiedEMG=abs(EMG_Voltage);
+                    RectifiedEMG=fillmissing(RectifiedEMG, 'constant', 0);
+                    plot(app.GraficoRectificado,t,RectifiedEMG);
+                    
+                    [up] = envelope(RectifiedEMG,app.FrecuenciaMuestreoSpinner.Value/5,'peak');
+                    plot(app.GraficoEnvolvente,t,up);
+
+                    plot(app.GraficoEMGRectificada,t,RectifiedEMG);
+                    plot(app.GraficoEMGEnvolvente,t,up);
+            end
+
+            catch 
+                        warndlg('No se ha seleccionado un puerto serial o la medición duro menos de 10 segundos','Excepción');
+                        app.TablaDatos.Data = [];
+                        cla(app.Grafico);
+                        cla(app.GraficoEmgFiltrada);
+                        cla(app.GraficoRectificado);
+                        cla(app.GraficoEnvolvente);
+                        cla(app.GraficoEMG);
+                        cla(app.GraficoEMGRectificada);
+                        cla(app.GraficoEMGEnvolvente);
+                        cla(app.GraficoFFT);
+                        app.INICIOButton.Enable = 'on';
+                        app.IMPORTARButton.Enable = 'on';
+                        app.EXPORTARButton.Enable = 'on';
+                        app.ImportarMenu.Enable = 'on';
+                        app.ExportarMenu.Enable = 'on';
+                        app.CERRARButton.Enable = 'on';
+                        app.SalirMenu.Enable = 'on';
+                        app.LIMPIARButton.Enable = 'on';
+                        app.MuestrasSpinner.Enable = 'on';
+                        app.FrecuenciaMuestreoSpinner.Enable = 'on';
+                        app.RestablecerButton.Enable = 'on';
+                        app.ActualizarButton.Enable = 'on';
+                        app.STOPButton.BackgroundColor = [201 60 29]/255;
+                        app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+
+            end
+        end
+
+        % Button pushed function: STOPButton
+        function STOPButtonPushed(app, event)
+             global stop datos
+             try
+                    stop = 1;
+                    Tablavacia = isempty(app.TablaDatos.Data);
+
+              if Tablavacia == 1
+                    app.TablaDatos.Data = zeros;
+                    app.TablaDatos.Data = [];
+              else
+                    r = datos';
+                    data1 = r;
+                    fq = app.FrecuenciaMuestreoSpinner.Value;
+                    SenalEMG = data1(:,2);
+                    
+                    RMS = sqrt(sum(SenalEMG.^2) / length(SenalEMG));
+                    RMSreal = 2*RMS;
+                    app.ValorRMSEditField.Value = RMS;
+                    maximo = max(SenalEMG, [], 'all');
+                    app.AmplitudMximaEditField.Value = maximo;
+                    PTM = (RMSreal/maximo)*100;
+                    app.PorcentajeTensinMaxEditField.Value = PTM;
+                    
+                    primeros_diez = ((app.MuestrasSpinner.Value)*10)/(app.MuestrasSpinner.Value/app.FrecuenciaMuestreoSpinner.Value);
+                    columna2_primeros = data1(1:primeros_diez, 2);
+                    valor_maximo_primeros = max(columna2_primeros);
+                    columna2_ultimos = data1(end-primeros_diez:end, 2);
+                    valor_pico_ultimos = max(columna2_ultimos);
+                    resultado = (valor_pico_ultimos/valor_maximo_primeros);
+                    app.PorcentajeFatigaMuscularEditField.Value = resultado;
+                    
+
+                    fft_SenalEMG = fft(SenalEMG);
+                    fft_SenalEMG = fftshift(fft_SenalEMG);
+                    n = length(SenalEMG);
+                    fq_axis1 = (-n/2:n/2-1)*fq/n;
+                    abs_fft_SenalEMG = abs(fft_SenalEMG);
+                    plot(app.GraficoFFT,fq_axis1, abs_fft_SenalEMG); 
+                    
+                    highpass = 20;
+                    lowpass = 200;
+                                          
+                    sEMG1 = data1(:,2); 
+                    
+                    cutoff1 = ceil((12.5-highpass)/(fq/length(sEMG1))); cutoff2 = ceil((12.5-lowpass)/(fq/length(sEMG1)));
+                    cutoff3 = ceil((highpass+12.5)/(fq/length(sEMG1))); cutoff4 = ceil((lowpass+12.5)/(fq/length(sEMG1)));
+                    H = zeros(length(sEMG1),1); H(cutoff2:cutoff1) = 1;
+                    H(cutoff3:cutoff4) = 1; 
+                    
+                    yt1 = ifftshift(fft_SenalEMG.*H); 
+                    yt1 = ifft(yt1);
+                    t = 1/fq*(1:length(yt1));
+                    plot(app.GraficoEmgFiltrada,t,yt1);
+                    plot(app.GraficoFiltrada,t,yt1);
+                    
+                    EMG_Voltage=real(yt1);
+                    RectifiedEMG=abs(EMG_Voltage);
+                    RectifiedEMG=fillmissing(RectifiedEMG, 'constant', 0);
+                    plot(app.GraficoRectificado,t,RectifiedEMG);
+                    
+                    [up] = envelope(RectifiedEMG,app.FrecuenciaMuestreoSpinner.Value/5,'peak');
+                    plot(app.GraficoEnvolvente,t,up);
+
+                    plot(app.GraficoEMGRectificada,t,RectifiedEMG);
+                    plot(app.GraficoEMGEnvolvente,t,up);
+              end
+              
+             catch
+                    errordlg('El puerto COM no corresponde al monitor de electromiografía EMG oficial o posiblemente se encontró un posible error al intentar detener el sistema','Excepción / Error');
+                    app.TablaDatos.Data = [];
+                    app.TablaDatos.Data = zeros;
+                    cla(app.Grafico);
+                    cla(app.GraficoFiltrada);
+                    cla(app.GraficoEmgFiltrada);
+                    cla(app.GraficoRectificado);
+                    cla(app.GraficoEnvolvente);
+                    cla(app.GraficoEMG);
+                    cla(app.GraficoEMGRectificada);
+                    cla(app.GraficoEMGEnvolvente);
+                    cla(app.GraficoFFT);
+            end
+        end
+
+        % Button pushed function: CERRARButton
+        function CERRARButtonPushed(app, event)
+            delete(app.PropiedadInicio);
+            app.delete;
+        end
+
+        % Close request function: Ventana
+        function VentanaCloseRequest(app, event)
+            delete(app.PropiedadInicio);
+            delete(app)
+        end
+
+        % Button pushed function: EXPORTARButton
+        function EXPORTARButtonPushed(app, event)
+             global datos
+             [filename,folder] = uiputfile('*.txt');
+             file = fullfile(folder,filename);
+             if filename == 0
+                 return;
+             else
+                 h = rmmissing(datos');
+                 writematrix(h,file);
+                 app.RutaArchivoEditField.Value = file;
+             end
+        end
+
+        % Value changed function: InvertirCheckBox
+        function InvertirCheckBoxValueChanged(app, event)
+            value = app.InvertirCheckBox.Value;
+            if value == 1
+                app.Grafico.YDir = 'reverse';
+                app.GraficoEmgFiltrada.YDir = 'reverse';
+                app.GraficoRectificado.YDir = 'reverse';
+                app.GraficoEnvolvente.YDir = 'reverse';
+                app.GraficoEMG.YDir = 'reverse';
+                app.GraficoFiltrada.YDir = 'reverse';
+                app.GraficoEMGRectificada.YDir = 'reverse';
+                app.GraficoEMGEnvolvente.YDir = 'reverse';
+                app.GraficoFFT.YDir = 'reverse';
+            else
+                app.Grafico.YDir = 'normal';
+                app.GraficoEmgFiltrada.YDir = 'normal';
+                app.GraficoRectificado.YDir = 'normal';
+                app.GraficoEnvolvente.YDir = 'normal';
+                app.GraficoEMG.YDir = 'normal';
+                app.GraficoFiltrada.YDir = 'normal';
+                app.GraficoEMGRectificada.YDir = 'normal';
+                app.GraficoEMGEnvolvente.YDir = 'normal';
+                app.GraficoFFT.YDir = 'normal';
+            end
+        end
+
+        % Value changed function: GridCheckBox
+        function GridCheckBoxValueChanged(app, event)
+            value = app.GridCheckBox.Value;
+            if value == 1
+                app.Grafico.XGrid = 'on';
+                app.Grafico.YGrid = 'on';
+                app.GraficoEmgFiltrada.XGrid = 'on';
+                app.GraficoEmgFiltrada.YGrid = 'on';
+                app.GraficoRectificado.XGrid = 'on';
+                app.GraficoRectificado.YGrid = 'on';
+                app.GraficoEnvolvente.XGrid = 'on';
+                app.GraficoEnvolvente.YGrid = 'on';
+                app.GraficoEMG.XGrid = 'on';
+                app.GraficoEMG.YGrid = 'on';
+                app.GraficoFiltrada.XGrid = 'on';
+                app.GraficoFiltrada.YGrid = 'on';
+                app.GraficoEMGRectificada.XGrid = 'on';
+                app.GraficoEMGRectificada.YGrid = 'on';
+                app.GraficoEMGEnvolvente.XGrid = 'on';
+                app.GraficoEMGEnvolvente.YGrid = 'on';
+                app.GraficoFFT.YGrid = 'on';
+            else
+                app.Grafico.XGrid = 'off';
+                app.Grafico.YGrid = 'off';
+                app.GraficoEmgFiltrada.XGrid = 'off';
+                app.GraficoEmgFiltrada.YGrid = 'off';
+                app.GraficoRectificado.XGrid = 'off';
+                app.GraficoRectificado.YGrid = 'off';
+                app.GraficoEnvolvente.XGrid = 'off';
+                app.GraficoEnvolvente.YGrid = 'off';
+                app.GraficoEMG.XGrid = 'off';
+                app.GraficoEMG.YGrid = 'off';
+                app.GraficoFiltrada.XGrid = 'off';
+                app.GraficoFiltrada.YGrid = 'off';
+                app.GraficoEMGRectificada.XGrid = 'off';
+                app.GraficoEMGRectificada.YGrid = 'off';
+                app.GraficoEMGEnvolvente.XGrid = 'off';
+                app.GraficoEMGEnvolvente.YGrid = 'off';
+                app.GraficoFFT.YGrid = 'off';
+            end
+        end
+
+        % Value changed function: AutoescalaCheckBox
+        function AutoescalaCheckBoxValueChanged(app, event)
+            value = app.AutoescalaCheckBox.Value;
+            if value == 1
+                app.Grafico.YLimMode = 'auto';
+                app.Grafico.XLimMode = 'auto';
+                app.GraficoEmgFiltrada.YLimMode = 'auto';
+                app.GraficoEmgFiltrada.XLimMode = 'auto';
+                app.GraficoRectificado.YLimMode = 'auto';
+                app.GraficoRectificado.XLimMode = 'auto';
+                app.GraficoEnvolvente.YLimMode = 'auto';
+                app.GraficoEnvolvente.XLimMode = 'auto';
+                app.GraficoFFT.YLimMode = 'auto';
+                app.GraficoFFT.XLimMode = 'auto';
+                app.GraficoEMG.YLimMode = 'auto';
+                app.GraficoEMG.XLimMode = 'auto';
+                app.GraficoFiltrada.YLimMode = 'auto';
+                app.GraficoFiltrada.XLimMode = 'auto';
+                app.GraficoEMGRectificada.YLimMode = 'auto';
+                app.GraficoEMGRectificada.XLimMode = 'auto';
+                app.GraficoEMGEnvolvente.YLimMode = 'auto';
+                app.GraficoEMGEnvolvente.XLimMode = 'auto';
+            else
+                app.Grafico.YLimMode = 'manual';
+                app.Grafico.XLimMode = 'manual';
+                app.GraficoEmgFiltrada.YLimMode = 'manual';
+                app.GraficoEmgFiltrada.XLimMode = 'manual';
+                app.GraficoRectificado.YLimMode = 'manual';
+                app.GraficoRectificado.XLimMode = 'manual';
+                app.GraficoEnvolvente.YLimMode = 'manual';
+                app.GraficoEnvolvente.XLimMode = 'manual';
+                app.GraficoFFT.YLimMode = 'manual';
+                app.GraficoFFT.XLimMode = 'manual';
+                app.GraficoFiltrada.YLimMode = 'manual';
+                app.GraficoFiltrada.XLimMode = 'manual';
+                app.GraficoEMGRectificada.YLimMode = 'manual';
+                app.GraficoEMGRectificada.XLimMode = 'manual';
+                app.GraficoEMGEnvolvente.YLimMode = 'manual';
+                app.GraficoEMGEnvolvente.XLimMode = 'manual';
+            end
+        end
+
+        % Button pushed function: IMPORTARButton
+        function IMPORTARButtonPushed(app, event)
+
+            [filename,folder] = uigetfile('*.txt');
+            file = fullfile(folder,filename);
+            app.STOPButton.BackgroundColor = [201 60 29]/255;
+            app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+            
+            if filename == 0
+                return;
+            else
+                warning('off','MATLAB:plot:IgnoreImaginaryXYPart');
+                app.STOPButton.BackgroundColor = [201 60 29]/255;
+                app.RutaArchivoEditField.Value = file;
+                t = readtable(file);
+                app.TablaDatos.Data = t;
+                t.Properties.VariableNames{1} = 'TIEMPO';
+                t.Properties.VariableNames{2} = 'VOLTAJE';
+                app.TablaDatos.ColumnName = t.Properties.VariableNames;
+
+                x = t.(1);
+                y = table2array(t(:,2:end));
+                plot(app.Grafico,x,y);
+                
+                re = [x,y];
+                
+                RMS = sqrt(sum(y.^2) / length(y));
+                RMSreal = 2*RMS;
+                app.ValorRMSEditField.Value = RMS;
+                maximo = max(y, [], 'all');
+                app.AmplitudMximaEditField.Value = maximo;
+                PTM = (RMSreal/maximo)*100;
+                app.PorcentajeTensinMaxEditField.Value = PTM;
+                
+                primeros_diez = ((app.MuestrasSpinner.Value)*10)/(app.MuestrasSpinner.Value/app.FrecuenciaMuestreoSpinner.Value);
+                columna2_primeros = re(1:primeros_diez, 2);
+                valor_maximo_primeros = max(columna2_primeros);
+                columna2_ultimos = re(end-primeros_diez:end, 2);
+                valor_pico_ultimos = max(columna2_ultimos);
+                resultado =  (valor_pico_ultimos/valor_maximo_primeros);
+                app.PorcentajeFatigaMuscularEditField.Value = resultado;
+
+                r = rmmissing(re);
+                data1 = r;
+                fq = app.FrecuenciaMuestreoSpinner.Value;
+                SenalEMG = data1(:,2);
+                fft_SenalEMG = fft(SenalEMG);
+                fft_SenalEMG = fftshift(fft_SenalEMG);
+                n = length(SenalEMG);
+                fq_axis1 = (-n/2:n/2-1)*fq/n;
+                abs_fft_SenalEMG = abs(fft_SenalEMG);
+                plot(app.GraficoFFT,fq_axis1, abs_fft_SenalEMG); 
+                
+                fq_pasaltos = 20;
+                fq_pasabajos = 200;
+                         
+                SenalEMG = data1(:,2); 
+              
+                corte1 = ceil((12.5-fq_pasaltos)/(fq/length(SenalEMG))); corte2 = ceil((12.5-fq_pasabajos)/(fq/length(SenalEMG)));
+                corte3 = ceil((fq_pasaltos+12.5)/(fq/length(SenalEMG))); corte4 = ceil((fq_pasabajos+12.5)/(fq/length(SenalEMG)));
+                H = zeros(length(SenalEMG),1); 
+                H(corte2:corte1) = 1;                
+                H(corte3:corte4) = 1; 
+                
+                senal_filtrada = ifftshift(fft_SenalEMG.*H); 
+                senal_filtrada = ifft(senal_filtrada);
+                plot(app.GraficoEmgFiltrada,x,senal_filtrada);
+                plot(app.GraficoFiltrada,x,senal_filtrada);
+                
+                EMG_Voltage=real(senal_filtrada);
+                RectifiedEMG=abs(EMG_Voltage);
+                RectifiedEMG=fillmissing(RectifiedEMG, 'constant', 0);
+                plot(app.GraficoRectificado,x,RectifiedEMG);
+                               
+                [up] = envelope(RectifiedEMG,app.FrecuenciaMuestreoSpinner.Value/5,'peak');
+                plot(app.GraficoEnvolvente,x,up);
+                
+                plot(app.GraficoEMG,x,y);
+                plot(app.GraficoEMGRectificada,x,RectifiedEMG);
+                plot(app.GraficoEMGEnvolvente,x,up);
+            end
+        end
+
+        % Button pushed function: LIMPIARButton
+        function LIMPIARButtonPushed(app, event)
+            app.TablaDatos.Data = zeros;
+            app.TablaDatos.Data = [];
+            cla(app.Grafico);
+            cla(app.GraficoFiltrada);
+            cla(app.GraficoEmgFiltrada);
+            cla(app.GraficoRectificado);
+            cla(app.GraficoEnvolvente);
+            cla(app.GraficoEMG);
+            cla(app.GraficoEMGRectificada);
+            cla(app.GraficoEMGEnvolvente);
+            cla(app.GraficoFFT);
+            app.RutaArchivoEditField.Value = ' ';
+            app.ValorRMSEditField.Value = 0;
+            app.AmplitudMximaEditField.Value = 0;
+            app.PorcentajeTensinMaxEditField.Value = 0;
+            app.PorcentajeFatigaMuscularEditField.Value = 0;
+            app.STOPButton.BackgroundColor = [201 60 29]/255;
+            app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+        end
+
+        % Menu selected function: ExportarMenu
+        function ExportarMenuSelected(app, event)
+             global datos
+             [filename,folder] = uiputfile('*.txt');
+             file = fullfile(folder,filename);
+             if filename == 0
+                 return;
+             else
+                 h = rmmissing(datos');
+                 writematrix(h,file);
+                 app.RutaArchivoEditField.Value = file;
+             end
+        end
+
+        % Menu selected function: ImportarMenu
+        function ImportarMenuSelected(app, event)
+             [filename,folder] = uigetfile('*.txt');
+
+             file = fullfile(folder,filename);
+             app.RutaArchivoEditField.Value = file;
+            app.STOPButton.BackgroundColor = [201 60 29]/255;
+            app.INICIOButton.BackgroundColor = [0.96 0.96 0.96];
+
+             if filename == 0
+                return;
+             else
+                warning('off','MATLAB:plot:IgnoreImaginaryXYPart');
+                app.STOPButton.BackgroundColor = [201 60 29]/255;
+                t = readtable(file);
+                app.TablaDatos.Data = t;
+                t.Properties.VariableNames{1} = 'TIEMPO';
+                t.Properties.VariableNames{2} = 'VOLTAJE';
+                app.TablaDatos.ColumnName = t.Properties.VariableNames;
+                x = t.(1);
+                y = table2array(t(:,2:end));
+                plot(app.Grafico,x,y);
+                
+                
+                re = [x,y];
+                
+                RMS = sqrt(sum(y.^2) / length(y));
+                RMSreal = 2*RMS;
+                app.ValorRMSEditField.Value = RMS;
+                maximo = max(y, [], 'all');
+                app.AmplitudMximaEditField.Value = maximo;
+                PTM = (RMSreal/maximo)*100;
+                app.PorcentajeTensinMaxEditField.Value = PTM;
+                
+                primeros_diez = ((app.MuestrasSpinner.Value)*10)/(app.MuestrasSpinner.Value/app.FrecuenciaMuestreoSpinner.Value);
+                columna2_primeros = re(1:primeros_diez, 2);
+                valor_maximo_primeros = max(columna2_primeros);
+                columna2_ultimos = re(end-primeros_diez:end, 2);
+                valor_pico_ultimos = max(columna2_ultimos);
+                resultado =  (valor_pico_ultimos/valor_maximo_primeros);
+                app.PorcentajeFatigaMuscularEditField.Value = resultado;
+                
+                
+                r = rmmissing(re);
+                data1 = r;
+                fq = app.FrecuenciaMuestreoSpinner.Value;
+                SenalEMG = data1(:,2);
+                fft_SenalEMG = fft(SenalEMG);
+                fft_SenalEMG = fftshift(fft_SenalEMG);
+                n = length(SenalEMG);
+                fq_axis1 = (-n/2:n/2-1)*fq/n;
+                abs_fft_SenalEMG = abs(fft_SenalEMG);
+                plot(app.GraficoFFT,fq_axis1, abs_fft_SenalEMG); 
+                
+                fq_pasaltos = 20;
+                fq_pasabajos = 200;
+                             
+                SenalEMG = data1(:,2); 
+               
+                corte1 = ceil((12.5-fq_pasaltos)/(fq/length(SenalEMG))); corte2 = ceil((12.5-fq_pasabajos)/(fq/length(SenalEMG)));
+                corte3 = ceil((fq_pasaltos+12.5)/(fq/length(SenalEMG))); corte4 = ceil((fq_pasabajos+12.5)/(fq/length(SenalEMG)));
+                H = zeros(length(SenalEMG),1); 
+                H(corte2:corte1) = 1;
+                H(corte3:corte4) = 1;
+                
+                senal_filtrada = ifftshift(fft_SenalEMG.*H); 
+                senal_filtrada = ifft(senal_filtrada);
+                plot(app.GraficoEmgFiltrada,x,senal_filtrada);
+                plot(app.GraficoFiltrada,x,senal_filtrada);
+ 
+                EMG_Voltage=real(senal_filtrada);
+                RectifiedEMG=abs(EMG_Voltage);
+                RectifiedEMG=fillmissing(RectifiedEMG, 'constant', 0);
+                plot(app.GraficoRectificado,x,RectifiedEMG);
+                
+                [up] = envelope(RectifiedEMG,app.FrecuenciaMuestreoSpinner.Value/5,'peak');
+                plot(app.GraficoEnvolvente,x,up);
+                                
+                plot(app.GraficoEMG,x,y);
+                plot(app.GraficoEMGRectificada,x,RectifiedEMG);
+                plot(app.GraficoEMGEnvolvente,x,up);
+             end
+        end
+
+        % Menu selected function: ManualMenu
+        function ManualMenuSelected(app, event)
+            open("Manual_Interfaz\DocumentoAyuda.pdf");
+        end
+
+        % Menu selected function: SalirMenu
+        function SalirMenuSelected(app, event)
+            delete(app.PropiedadInicio);
+            app.delete;
+        end
+
+        % Button pushed function: ScreenShotButton
+        function ScreenShotButtonPushed(app, event)
+            filter = {'*.jpg';'*.png';'*.tif';'*.pdf'};
+            [filename,filepath] = uiputfile(filter);
+            if app.TabGroup.SelectedTab == app.EMGTab
+                tabla = app.Grafico;
+            elseif app.TabGroup.SelectedTab == app.EMGFiltradaTab
+                tabla = app.GraficoEmgFiltrada;
+            elseif app.TabGroup.SelectedTab == app.RectificacinTab
+                tabla = app.GraficoRectificado;
+            elseif app.TabGroup.SelectedTab == app.EnvolventeTab
+                tabla = app.GraficoEnvolvente;
+            elseif app.TabGroup.SelectedTab == app.FFTTab
+                tabla = app.GraficoFFT;
+            elseif app.TabGroup.SelectedTab == app.ComparacinTab
+                tabla = app.GridLayout8;
+            end
+            if ischar(filename)
+                  exportgraphics(tabla,[filepath filename]);
+            end
+        end
+
+        % Button pushed function: RestablecerButton
+        function RestablecerButtonPushed(app, event)
+            app.MuestrasSpinner.Value = 750;
+            app.FrecuenciaMuestreoSpinner.Value = 25;
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create Ventana and hide until all components are created
+            app.Ventana = uifigure('Visible', 'off');
+            app.Ventana.AutoResizeChildren = 'off';
+            app.Ventana.Position = [100 100 1285 703];
+            app.Ventana.Name = 'MATLAB App';
+            app.Ventana.CloseRequestFcn = createCallbackFcn(app, @VentanaCloseRequest, true);
+            app.Ventana.SizeChangedFcn = createCallbackFcn(app, @updateAppLayout, true);
+            app.Ventana.WindowState = 'maximized';
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.Ventana);
+            app.GridLayout.ColumnWidth = {196, '1x', 289};
+            app.GridLayout.RowHeight = {'1x'};
+            app.GridLayout.ColumnSpacing = 0;
+            app.GridLayout.RowSpacing = 0;
+            app.GridLayout.Padding = [0 0 0 0];
+            app.GridLayout.Scrollable = 'on';
+
+            % Create LeftPanel
+            app.LeftPanel = uipanel(app.GridLayout);
+            app.LeftPanel.Layout.Row = 1;
+            app.LeftPanel.Layout.Column = 1;
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.LeftPanel);
+            app.GridLayout2.ColumnWidth = {'10x', '100x', '10x'};
+            app.GridLayout2.RowHeight = {'3x', 'fit', 'fit', 'fit'};
+            app.GridLayout2.ColumnSpacing = 0;
+            app.GridLayout2.RowSpacing = 5;
+            app.GridLayout2.Padding = [0 10 0 10];
+
+            % Create OpcionesdegrficoPanel
+            app.OpcionesdegrficoPanel = uipanel(app.GridLayout2);
+            app.OpcionesdegrficoPanel.Title = 'Opciones de gráfico';
+            app.OpcionesdegrficoPanel.Layout.Row = 3;
+            app.OpcionesdegrficoPanel.Layout.Column = 2;
+            app.OpcionesdegrficoPanel.FontWeight = 'bold';
+            app.OpcionesdegrficoPanel.FontSize = 14;
+
+            % Create GridLayout10
+            app.GridLayout10 = uigridlayout(app.OpcionesdegrficoPanel);
+            app.GridLayout10.ColumnWidth = {'1x'};
+            app.GridLayout10.RowHeight = {'fit', 'fit', 'fit'};
+
+            % Create InvertirCheckBox
+            app.InvertirCheckBox = uicheckbox(app.GridLayout10);
+            app.InvertirCheckBox.ValueChangedFcn = createCallbackFcn(app, @InvertirCheckBoxValueChanged, true);
+            app.InvertirCheckBox.Text = 'Invertir';
+            app.InvertirCheckBox.FontSize = 14;
+            app.InvertirCheckBox.Layout.Row = 1;
+            app.InvertirCheckBox.Layout.Column = 1;
+
+            % Create GridCheckBox
+            app.GridCheckBox = uicheckbox(app.GridLayout10);
+            app.GridCheckBox.ValueChangedFcn = createCallbackFcn(app, @GridCheckBoxValueChanged, true);
+            app.GridCheckBox.Text = 'Grid';
+            app.GridCheckBox.FontSize = 14;
+            app.GridCheckBox.Layout.Row = 2;
+            app.GridCheckBox.Layout.Column = 1;
+
+            % Create AutoescalaCheckBox
+            app.AutoescalaCheckBox = uicheckbox(app.GridLayout10);
+            app.AutoescalaCheckBox.ValueChangedFcn = createCallbackFcn(app, @AutoescalaCheckBoxValueChanged, true);
+            app.AutoescalaCheckBox.Text = 'Autoescala';
+            app.AutoescalaCheckBox.FontSize = 14;
+            app.AutoescalaCheckBox.Layout.Row = 3;
+            app.AutoescalaCheckBox.Layout.Column = 1;
+            app.AutoescalaCheckBox.Value = true;
+
+            % Create GridLayout11
+            app.GridLayout11 = uigridlayout(app.GridLayout2);
+            app.GridLayout11.ColumnWidth = {'1x'};
+            app.GridLayout11.RowHeight = {'fit', 'fit', 'fit'};
+            app.GridLayout11.Layout.Row = 4;
+            app.GridLayout11.Layout.Column = 2;
+
+            % Create INICIOButton
+            app.INICIOButton = uibutton(app.GridLayout11, 'push');
+            app.INICIOButton.ButtonPushedFcn = createCallbackFcn(app, @INICIOButtonPushed, true);
+            app.INICIOButton.FontSize = 14;
+            app.INICIOButton.Layout.Row = 1;
+            app.INICIOButton.Layout.Column = 1;
+            app.INICIOButton.Text = 'INICIO';
+
+            % Create STOPButton
+            app.STOPButton = uibutton(app.GridLayout11, 'push');
+            app.STOPButton.ButtonPushedFcn = createCallbackFcn(app, @STOPButtonPushed, true);
+            app.STOPButton.FontSize = 14;
+            app.STOPButton.Layout.Row = 2;
+            app.STOPButton.Layout.Column = 1;
+            app.STOPButton.Text = 'STOP';
+
+            % Create CERRARButton
+            app.CERRARButton = uibutton(app.GridLayout11, 'push');
+            app.CERRARButton.ButtonPushedFcn = createCallbackFcn(app, @CERRARButtonPushed, true);
+            app.CERRARButton.FontSize = 14;
+            app.CERRARButton.Layout.Row = 3;
+            app.CERRARButton.Layout.Column = 1;
+            app.CERRARButton.Text = 'CERRAR';
+
+            % Create GridLayout12
+            app.GridLayout12 = uigridlayout(app.GridLayout2);
+            app.GridLayout12.ColumnWidth = {'1x'};
+            app.GridLayout12.RowHeight = {'fit', '1x', '2x', '1x', '2x', 'fit', 'fit'};
+            app.GridLayout12.Layout.Row = 2;
+            app.GridLayout12.Layout.Column = 2;
+
+            % Create FrecuenciaMuestreoSpinnerLabel
+            app.FrecuenciaMuestreoSpinnerLabel = uilabel(app.GridLayout12);
+            app.FrecuenciaMuestreoSpinnerLabel.HorizontalAlignment = 'center';
+            app.FrecuenciaMuestreoSpinnerLabel.FontSize = 14;
+            app.FrecuenciaMuestreoSpinnerLabel.FontWeight = 'bold';
+            app.FrecuenciaMuestreoSpinnerLabel.Layout.Row = 4;
+            app.FrecuenciaMuestreoSpinnerLabel.Layout.Column = 1;
+            app.FrecuenciaMuestreoSpinnerLabel.Text = 'Frecuencia Muestreo';
+
+            % Create FrecuenciaMuestreoSpinner
+            app.FrecuenciaMuestreoSpinner = uispinner(app.GridLayout12);
+            app.FrecuenciaMuestreoSpinner.Step = 5;
+            app.FrecuenciaMuestreoSpinner.Limits = [25 100];
+            app.FrecuenciaMuestreoSpinner.RoundFractionalValues = 'on';
+            app.FrecuenciaMuestreoSpinner.ValueDisplayFormat = '%5.0f Hz';
+            app.FrecuenciaMuestreoSpinner.HorizontalAlignment = 'center';
+            app.FrecuenciaMuestreoSpinner.FontSize = 14;
+            app.FrecuenciaMuestreoSpinner.Layout.Row = 5;
+            app.FrecuenciaMuestreoSpinner.Layout.Column = 1;
+            app.FrecuenciaMuestreoSpinner.Value = 25;
+
+            % Create ScreenShotButton
+            app.ScreenShotButton = uibutton(app.GridLayout12, 'push');
+            app.ScreenShotButton.ButtonPushedFcn = createCallbackFcn(app, @ScreenShotButtonPushed, true);
+            app.ScreenShotButton.FontSize = 14;
+            app.ScreenShotButton.Layout.Row = 7;
+            app.ScreenShotButton.Layout.Column = 1;
+            app.ScreenShotButton.Text = 'ScreenShot';
+
+            % Create ActualizarButton
+            app.ActualizarButton = uibutton(app.GridLayout12, 'push');
+            app.ActualizarButton.ButtonPushedFcn = createCallbackFcn(app, @ActualizarButtonPushed, true);
+            app.ActualizarButton.FontSize = 14;
+            app.ActualizarButton.Layout.Row = 1;
+            app.ActualizarButton.Layout.Column = 1;
+            app.ActualizarButton.Text = 'Actualizar';
+
+            % Create RestablecerButton
+            app.RestablecerButton = uibutton(app.GridLayout12, 'push');
+            app.RestablecerButton.ButtonPushedFcn = createCallbackFcn(app, @RestablecerButtonPushed, true);
+            app.RestablecerButton.FontSize = 14;
+            app.RestablecerButton.Layout.Row = 6;
+            app.RestablecerButton.Layout.Column = 1;
+            app.RestablecerButton.Text = 'Restablecer';
+
+            % Create MuestrasSpinnerLabel
+            app.MuestrasSpinnerLabel = uilabel(app.GridLayout12);
+            app.MuestrasSpinnerLabel.HorizontalAlignment = 'center';
+            app.MuestrasSpinnerLabel.FontSize = 14;
+            app.MuestrasSpinnerLabel.FontWeight = 'bold';
+            app.MuestrasSpinnerLabel.Layout.Row = 2;
+            app.MuestrasSpinnerLabel.Layout.Column = 1;
+            app.MuestrasSpinnerLabel.Text = 'Muestras';
+
+            % Create MuestrasSpinner
+            app.MuestrasSpinner = uispinner(app.GridLayout12);
+            app.MuestrasSpinner.Limits = [1 100000];
+            app.MuestrasSpinner.ValueDisplayFormat = '%5.0f Muestras';
+            app.MuestrasSpinner.FontSize = 14;
+            app.MuestrasSpinner.Layout.Row = 3;
+            app.MuestrasSpinner.Layout.Column = 1;
+            app.MuestrasSpinner.Value = 750;
+
+            % Create TablaPuertos
+            app.TablaPuertos = uitable(app.GridLayout2);
+            app.TablaPuertos.ColumnName = {'Puerto Serial'};
+            app.TablaPuertos.RowName = {};
+            app.TablaPuertos.CellSelectionCallback = createCallbackFcn(app, @TablaPuertosCellSelection, true);
+            app.TablaPuertos.Layout.Row = 1;
+            app.TablaPuertos.Layout.Column = 2;
+            app.TablaPuertos.FontSize = 14;
+
+            % Create CenterPanel
+            app.CenterPanel = uipanel(app.GridLayout);
+            app.CenterPanel.Layout.Row = 1;
+            app.CenterPanel.Layout.Column = 2;
+
+            % Create GridLayout3
+            app.GridLayout3 = uigridlayout(app.CenterPanel);
+            app.GridLayout3.ColumnWidth = {'1x'};
+            app.GridLayout3.RowHeight = {'fit', 'fit', 'fit', '16.4x'};
+
+            % Create MonitordeelectromiografaEMGentiemporealLabel
+            app.MonitordeelectromiografaEMGentiemporealLabel = uilabel(app.GridLayout3);
+            app.MonitordeelectromiografaEMGentiemporealLabel.HorizontalAlignment = 'center';
+            app.MonitordeelectromiografaEMGentiemporealLabel.FontSize = 22;
+            app.MonitordeelectromiografaEMGentiemporealLabel.FontWeight = 'bold';
+            app.MonitordeelectromiografaEMGentiemporealLabel.Layout.Row = 2;
+            app.MonitordeelectromiografaEMGentiemporealLabel.Layout.Column = 1;
+            app.MonitordeelectromiografaEMGentiemporealLabel.Text = 'Monitor de electromiografía (EMG) en tiempo real';
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.GridLayout3);
+            app.TabGroup.Layout.Row = 4;
+            app.TabGroup.Layout.Column = 1;
+
+            % Create EMGTab
+            app.EMGTab = uitab(app.TabGroup);
+            app.EMGTab.Title = 'EMG';
+
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.EMGTab);
+            app.GridLayout7.ColumnWidth = {'3.61x'};
+            app.GridLayout7.RowHeight = {'1x'};
+
+            % Create Grafico
+            app.Grafico = uiaxes(app.GridLayout7);
+            title(app.Grafico, 'EMG')
+            xlabel(app.Grafico, 'Muestras')
+            ylabel(app.Grafico, 'Amplitud (V)')
+            zlabel(app.Grafico, 'Z')
+            app.Grafico.FontWeight = 'bold';
+            app.Grafico.Layout.Row = 1;
+            app.Grafico.Layout.Column = 1;
+
+            % Create EMGFiltradaTab
+            app.EMGFiltradaTab = uitab(app.TabGroup);
+            app.EMGFiltradaTab.Title = 'EMG Filtrada';
+
+            % Create GridLayout6
+            app.GridLayout6 = uigridlayout(app.EMGFiltradaTab);
+            app.GridLayout6.ColumnWidth = {'1.51x'};
+            app.GridLayout6.RowHeight = {'2.34x'};
+
+            % Create GraficoEmgFiltrada
+            app.GraficoEmgFiltrada = uiaxes(app.GridLayout6);
+            title(app.GraficoEmgFiltrada, 'EMG Filtrada')
+            xlabel(app.GraficoEmgFiltrada, 'Tiempo (Segundos)')
+            ylabel(app.GraficoEmgFiltrada, 'Amplitud (V)')
+            zlabel(app.GraficoEmgFiltrada, 'Z')
+            app.GraficoEmgFiltrada.FontWeight = 'bold';
+            app.GraficoEmgFiltrada.Layout.Row = 1;
+            app.GraficoEmgFiltrada.Layout.Column = 1;
+
+            % Create RectificacinTab
+            app.RectificacinTab = uitab(app.TabGroup);
+            app.RectificacinTab.Title = 'Rectificación';
+
+            % Create GridLayout13
+            app.GridLayout13 = uigridlayout(app.RectificacinTab);
+            app.GridLayout13.ColumnWidth = {'1x'};
+            app.GridLayout13.RowHeight = {'1x'};
+
+            % Create GraficoRectificado
+            app.GraficoRectificado = uiaxes(app.GridLayout13);
+            title(app.GraficoRectificado, 'EMG Rectificada ')
+            xlabel(app.GraficoRectificado, 'Tiempo (Segundos)')
+            ylabel(app.GraficoRectificado, 'Amplitud (V)')
+            zlabel(app.GraficoRectificado, 'Z')
+            app.GraficoRectificado.FontWeight = 'bold';
+            app.GraficoRectificado.Layout.Row = 1;
+            app.GraficoRectificado.Layout.Column = 1;
+
+            % Create EnvolventeTab
+            app.EnvolventeTab = uitab(app.TabGroup);
+            app.EnvolventeTab.Title = 'Envolvente';
+
+            % Create GridLayout5
+            app.GridLayout5 = uigridlayout(app.EnvolventeTab);
+            app.GridLayout5.ColumnWidth = {'1x'};
+            app.GridLayout5.RowHeight = {'1x'};
+
+            % Create GraficoEnvolvente
+            app.GraficoEnvolvente = uiaxes(app.GridLayout5);
+            title(app.GraficoEnvolvente, 'Envolvente')
+            xlabel(app.GraficoEnvolvente, 'Tiempo (Segundos)')
+            ylabel(app.GraficoEnvolvente, 'Amplitud (V)')
+            zlabel(app.GraficoEnvolvente, 'Z')
+            app.GraficoEnvolvente.FontWeight = 'bold';
+            app.GraficoEnvolvente.Layout.Row = 1;
+            app.GraficoEnvolvente.Layout.Column = 1;
+
+            % Create FFTTab
+            app.FFTTab = uitab(app.TabGroup);
+            app.FFTTab.Title = 'FFT';
+
+            % Create GridLayout9
+            app.GridLayout9 = uigridlayout(app.FFTTab);
+            app.GridLayout9.ColumnWidth = {'1x'};
+            app.GridLayout9.RowHeight = {'1x'};
+
+            % Create GraficoFFT
+            app.GraficoFFT = uiaxes(app.GridLayout9);
+            title(app.GraficoFFT, 'FFT')
+            xlabel(app.GraficoFFT, 'Frecuencia (Hz)')
+            ylabel(app.GraficoFFT, 'Amplitud')
+            zlabel(app.GraficoFFT, 'Z')
+            app.GraficoFFT.FontWeight = 'bold';
+            app.GraficoFFT.Layout.Row = 1;
+            app.GraficoFFT.Layout.Column = 1;
+
+            % Create ComparacinTab
+            app.ComparacinTab = uitab(app.TabGroup);
+            app.ComparacinTab.Title = 'Comparación';
+
+            % Create GridLayout8
+            app.GridLayout8 = uigridlayout(app.ComparacinTab);
+            app.GridLayout8.ColumnWidth = {'1x'};
+            app.GridLayout8.RowHeight = {'1x', '1x', '1x', '1x'};
+
+            % Create GraficoEMG
+            app.GraficoEMG = uiaxes(app.GridLayout8);
+            title(app.GraficoEMG, 'EMG')
+            xlabel(app.GraficoEMG, 'Tiempo (Segundos)')
+            ylabel(app.GraficoEMG, 'Amplitud (V)')
+            zlabel(app.GraficoEMG, 'Z')
+            app.GraficoEMG.FontWeight = 'bold';
+            app.GraficoEMG.Layout.Row = 1;
+            app.GraficoEMG.Layout.Column = 1;
+
+            % Create GraficoEMGRectificada
+            app.GraficoEMGRectificada = uiaxes(app.GridLayout8);
+            title(app.GraficoEMGRectificada, 'Rectificación EMG Filtrada ')
+            xlabel(app.GraficoEMGRectificada, 'Tiempo (Segundos)')
+            ylabel(app.GraficoEMGRectificada, 'Amplitud (V)')
+            zlabel(app.GraficoEMGRectificada, 'Z')
+            app.GraficoEMGRectificada.FontWeight = 'bold';
+            app.GraficoEMGRectificada.Layout.Row = 3;
+            app.GraficoEMGRectificada.Layout.Column = 1;
+
+            % Create GraficoEMGEnvolvente
+            app.GraficoEMGEnvolvente = uiaxes(app.GridLayout8);
+            title(app.GraficoEMGEnvolvente, 'Envolvente')
+            xlabel(app.GraficoEMGEnvolvente, 'Tiempo (Segundos)')
+            ylabel(app.GraficoEMGEnvolvente, 'Amplitud (V)')
+            zlabel(app.GraficoEMGEnvolvente, 'Z')
+            app.GraficoEMGEnvolvente.FontWeight = 'bold';
+            app.GraficoEMGEnvolvente.Layout.Row = 4;
+            app.GraficoEMGEnvolvente.Layout.Column = 1;
+
+            % Create GraficoFiltrada
+            app.GraficoFiltrada = uiaxes(app.GridLayout8);
+            title(app.GraficoFiltrada, 'EMG Filtrada')
+            xlabel(app.GraficoFiltrada, 'Tiempo (Segundos)')
+            ylabel(app.GraficoFiltrada, 'Amplitud (V)')
+            zlabel(app.GraficoFiltrada, 'Z')
+            app.GraficoFiltrada.FontWeight = 'bold';
+            app.GraficoFiltrada.Layout.Row = 2;
+            app.GraficoFiltrada.Layout.Column = 1;
+
+            % Create RightPanel
+            app.RightPanel = uipanel(app.GridLayout);
+            app.RightPanel.Layout.Row = 1;
+            app.RightPanel.Layout.Column = 3;
+
+            % Create GridLayout4
+            app.GridLayout4 = uigridlayout(app.RightPanel);
+            app.GridLayout4.ColumnWidth = {'fit', '15x', 'fit'};
+            app.GridLayout4.RowHeight = {'fit', '2.83x', 'fit', 'fit', 'fit', 'fit', 'fit', 'fit', 'fit', 'fit', 22, 'fit', 'fit', 22, 22, 0.5};
+            app.GridLayout4.ColumnSpacing = 2;
+
+            % Create TablaDatos
+            app.TablaDatos = uitable(app.GridLayout4);
+            app.TablaDatos.ColumnName = {'TIEMPO'; 'VOLTAJE'};
+            app.TablaDatos.RowName = {};
+            app.TablaDatos.FontWeight = 'bold';
+            app.TablaDatos.Layout.Row = 2;
+            app.TablaDatos.Layout.Column = 2;
+            app.TablaDatos.FontSize = 14;
+
+            % Create LIMPIARButton
+            app.LIMPIARButton = uibutton(app.GridLayout4, 'push');
+            app.LIMPIARButton.ButtonPushedFcn = createCallbackFcn(app, @LIMPIARButtonPushed, true);
+            app.LIMPIARButton.FontSize = 14;
+            app.LIMPIARButton.Layout.Row = 11;
+            app.LIMPIARButton.Layout.Column = 2;
+            app.LIMPIARButton.Text = 'LIMPIAR';
+
+            % Create EXPORTARButton
+            app.EXPORTARButton = uibutton(app.GridLayout4, 'push');
+            app.EXPORTARButton.ButtonPushedFcn = createCallbackFcn(app, @EXPORTARButtonPushed, true);
+            app.EXPORTARButton.FontSize = 14;
+            app.EXPORTARButton.Layout.Row = 15;
+            app.EXPORTARButton.Layout.Column = 2;
+            app.EXPORTARButton.Text = 'EXPORTAR';
+
+            % Create IMPORTARButton
+            app.IMPORTARButton = uibutton(app.GridLayout4, 'push');
+            app.IMPORTARButton.ButtonPushedFcn = createCallbackFcn(app, @IMPORTARButtonPushed, true);
+            app.IMPORTARButton.FontSize = 14;
+            app.IMPORTARButton.Layout.Row = 14;
+            app.IMPORTARButton.Layout.Column = 2;
+            app.IMPORTARButton.Text = 'IMPORTAR';
+
+            % Create RutaArchivoEditFieldLabel
+            app.RutaArchivoEditFieldLabel = uilabel(app.GridLayout4);
+            app.RutaArchivoEditFieldLabel.HorizontalAlignment = 'center';
+            app.RutaArchivoEditFieldLabel.FontSize = 14;
+            app.RutaArchivoEditFieldLabel.FontWeight = 'bold';
+            app.RutaArchivoEditFieldLabel.Layout.Row = 12;
+            app.RutaArchivoEditFieldLabel.Layout.Column = 2;
+            app.RutaArchivoEditFieldLabel.Text = 'Ruta Archivo';
+
+            % Create RutaArchivoEditField
+            app.RutaArchivoEditField = uieditfield(app.GridLayout4, 'text');
+            app.RutaArchivoEditField.FontSize = 14;
+            app.RutaArchivoEditField.Layout.Row = 13;
+            app.RutaArchivoEditField.Layout.Column = 2;
+
+            % Create AmplitudMximaEditFieldLabel
+            app.AmplitudMximaEditFieldLabel = uilabel(app.GridLayout4);
+            app.AmplitudMximaEditFieldLabel.HorizontalAlignment = 'center';
+            app.AmplitudMximaEditFieldLabel.FontSize = 14;
+            app.AmplitudMximaEditFieldLabel.FontWeight = 'bold';
+            app.AmplitudMximaEditFieldLabel.Layout.Row = 3;
+            app.AmplitudMximaEditFieldLabel.Layout.Column = 2;
+            app.AmplitudMximaEditFieldLabel.Text = 'Amplitud Máxima';
+
+            % Create AmplitudMximaEditField
+            app.AmplitudMximaEditField = uieditfield(app.GridLayout4, 'numeric');
+            app.AmplitudMximaEditField.HorizontalAlignment = 'center';
+            app.AmplitudMximaEditField.FontSize = 14;
+            app.AmplitudMximaEditField.Layout.Row = 4;
+            app.AmplitudMximaEditField.Layout.Column = 2;
+
+            % Create ValorRMSEditFieldLabel
+            app.ValorRMSEditFieldLabel = uilabel(app.GridLayout4);
+            app.ValorRMSEditFieldLabel.HorizontalAlignment = 'center';
+            app.ValorRMSEditFieldLabel.FontSize = 14;
+            app.ValorRMSEditFieldLabel.FontWeight = 'bold';
+            app.ValorRMSEditFieldLabel.Layout.Row = 5;
+            app.ValorRMSEditFieldLabel.Layout.Column = 2;
+            app.ValorRMSEditFieldLabel.Text = 'Valor RMS ';
+
+            % Create ValorRMSEditField
+            app.ValorRMSEditField = uieditfield(app.GridLayout4, 'numeric');
+            app.ValorRMSEditField.HorizontalAlignment = 'center';
+            app.ValorRMSEditField.FontSize = 14;
+            app.ValorRMSEditField.Layout.Row = 6;
+            app.ValorRMSEditField.Layout.Column = 2;
+
+            % Create PorcentajeTensinMaxEditFieldLabel
+            app.PorcentajeTensinMaxEditFieldLabel = uilabel(app.GridLayout4);
+            app.PorcentajeTensinMaxEditFieldLabel.HorizontalAlignment = 'center';
+            app.PorcentajeTensinMaxEditFieldLabel.FontSize = 14;
+            app.PorcentajeTensinMaxEditFieldLabel.FontWeight = 'bold';
+            app.PorcentajeTensinMaxEditFieldLabel.Layout.Row = 7;
+            app.PorcentajeTensinMaxEditFieldLabel.Layout.Column = 2;
+            app.PorcentajeTensinMaxEditFieldLabel.Text = 'Porcentaje Tensión Max';
+
+            % Create PorcentajeTensinMaxEditField
+            app.PorcentajeTensinMaxEditField = uieditfield(app.GridLayout4, 'numeric');
+            app.PorcentajeTensinMaxEditField.HorizontalAlignment = 'center';
+            app.PorcentajeTensinMaxEditField.FontSize = 14;
+            app.PorcentajeTensinMaxEditField.Layout.Row = 8;
+            app.PorcentajeTensinMaxEditField.Layout.Column = 2;
+
+            % Create PorcentajeFatigaMuscularEditFieldLabel
+            app.PorcentajeFatigaMuscularEditFieldLabel = uilabel(app.GridLayout4);
+            app.PorcentajeFatigaMuscularEditFieldLabel.HorizontalAlignment = 'center';
+            app.PorcentajeFatigaMuscularEditFieldLabel.FontSize = 14;
+            app.PorcentajeFatigaMuscularEditFieldLabel.FontWeight = 'bold';
+            app.PorcentajeFatigaMuscularEditFieldLabel.Layout.Row = 9;
+            app.PorcentajeFatigaMuscularEditFieldLabel.Layout.Column = 2;
+            app.PorcentajeFatigaMuscularEditFieldLabel.Text = 'Porcentaje Fatiga Muscular';
+
+            % Create PorcentajeFatigaMuscularEditField
+            app.PorcentajeFatigaMuscularEditField = uieditfield(app.GridLayout4, 'numeric');
+            app.PorcentajeFatigaMuscularEditField.HorizontalAlignment = 'center';
+            app.PorcentajeFatigaMuscularEditField.FontSize = 14;
+            app.PorcentajeFatigaMuscularEditField.Layout.Row = 10;
+            app.PorcentajeFatigaMuscularEditField.Layout.Column = 2;
+
+            % Create ArchivoMenu
+            app.ArchivoMenu = uimenu(app.Ventana);
+            app.ArchivoMenu.Text = 'Archivo';
+
+            % Create ExportarMenu
+            app.ExportarMenu = uimenu(app.ArchivoMenu);
+            app.ExportarMenu.MenuSelectedFcn = createCallbackFcn(app, @ExportarMenuSelected, true);
+            app.ExportarMenu.Text = 'Exportar';
+
+            % Create ImportarMenu
+            app.ImportarMenu = uimenu(app.ArchivoMenu);
+            app.ImportarMenu.MenuSelectedFcn = createCallbackFcn(app, @ImportarMenuSelected, true);
+            app.ImportarMenu.Text = 'Importar';
+
+            % Create SalirMenu
+            app.SalirMenu = uimenu(app.ArchivoMenu);
+            app.SalirMenu.MenuSelectedFcn = createCallbackFcn(app, @SalirMenuSelected, true);
+            app.SalirMenu.Text = 'Salir';
+
+            % Create AyudaMenu_2
+            app.AyudaMenu_2 = uimenu(app.Ventana);
+            app.AyudaMenu_2.Text = 'Ayuda';
+
+            % Create ManualMenu
+            app.ManualMenu = uimenu(app.AyudaMenu_2);
+            app.ManualMenu.MenuSelectedFcn = createCallbackFcn(app, @ManualMenuSelected, true);
+            app.ManualMenu.Text = 'Manual';
+
+            % Show the figure after all components are created
+            app.Ventana.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = Interfaz_FuncionalTerminada_V16
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.Ventana)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.Ventana)
+        end
+    end
+end
